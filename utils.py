@@ -7,8 +7,6 @@ import cardData
 import os
 import re
 import timeit
-
-print(os.getcwd())
 # Get the width of the cards/images
 def getWidthCard():
     return 330
@@ -19,42 +17,20 @@ def getHeightCard():
     return 440
 
 
-# # Returns the corners & area of the biggest contour |||| ORIGINAL FUNC
-# def biggestContour(contours):
-#     biggest = np.array([])
-#     maxArea = 0
-#     for i in contours:  # Loop through contours
-#         area = cv2.contourArea(i)  # Get area of contour
-#         if area > 1000:
-#             peri = cv2.arcLength(i, True)  # Get perimeter of contour
-#             approx = cv2.approxPolyDP(i, 0.02 * peri, True)  # Gets number of sides of contour
-#             # if len(approx) == 4 and cv2.isContourConvex(approx):
-#             #     corners = approx
-#                 # break
-#             if area > maxArea and len(approx) == 4:  # If area of contour is > than current max & contour is a rectangle
-#                 biggest = approx
-#                 maxArea = area
-#     return biggest, maxArea
-
+# Returns the corners & area of the biggest contour
 def biggestContour(contours):
     biggest = np.array([])
     maxArea = 0
-    
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        if area > 150:
-            # Get bounding rectangle
-            rect = cv2.minAreaRect(contour)
-            box = cv2.boxPoints(rect)
-            box = np.int32(box)
-            
-            # Check if it's roughly rectangular (area vs bounding box area)
-            rect_area = rect[1][0] * rect[1][1]
-            if area / rect_area > 0.7 and area > maxArea:  # 70% fill ratio
-                biggest = box.reshape(4, 1, 2)  # Format like approxPolyDP output
+    for i in contours:  # Loop through contours
+        area = cv2.contourArea(i)  # Get area of contour
+        if area > 5000:
+            peri = cv2.arcLength(i, True)  # Get perimeter of contour
+            approx = cv2.approxPolyDP(i, 0.02 * peri, True)  # Gets number of sides of contour
+            if area > maxArea and len(approx) == 4:  # If area of contour is > than current max & contour is a rectangle
+                biggest = approx
                 maxArea = area
-                
     return biggest, maxArea
+
 
 # Returns corners in order [topleft, topright, bottomleft, bottomright]
 # This is meant to return a vertical image no matter the card orientation, but the result may be upside-down or mirrored
@@ -231,68 +207,37 @@ def drawRectangle(img, corners):
     return img
 
 
-# # Creates final display image by stacking all 8 images and adding labels
-# def makeDisplayImage(imgArr, labels):
-#     rows = len(imgArr)  # Get number of rows of images
-#     cols = len(imgArr[0])  # Get numbers of images in a row
+# Creates final display image by stacking all 8 images and adding labels
+def makeDisplayImage(imgArr, labels):
+    rows = len(imgArr)  # Get number of rows of images
+    cols = len(imgArr[0])  # Get numbers of images in a row
 
-#     # Loop through the images
-#     # OpenCV stores grayscale images as 2D arrays, so we need to convert them to 3D arrays to be able to combine them
-#     # with the colored images
-#     for x in range(0, rows):
-#         for y in range(0, cols):
-#             if len(imgArr[x][y].shape) == 2:
-#                 imgArr[x][y] = cv2.cvtColor(imgArr[x][y], cv2.COLOR_GRAY2BGR)
+    # Loop through the images
+    # OpenCV stores grayscale images as 2D arrays, so we need to convert them to 3D arrays to be able to combine them
+    # with the colored images
+    for x in range(0, rows):
+        for y in range(0, cols):
+            if len(imgArr[x][y].shape) == 2:
+                imgArr[x][y] = cv2.cvtColor(imgArr[x][y], cv2.COLOR_GRAY2BGR)
 
-#     # Create a black image
-#     imageBlank = np.zeros((getHeightCard(), getWidthCard(), 3), np.uint8)
+    # Create a black image
+    imageBlank = np.zeros((getHeightCard(), getWidthCard(), 3), np.uint8)
 
-#     # Stack the images
-#     hor = [imageBlank] * rows
-#     for x in range(0, rows):
-#         hor[x] = np.hstack(imgArr[x])
-#     stacked = np.vstack(hor)
-
-#     # Add labels via white rectangles and text
-#     for d in range(0, rows):
-#         for c in range(0, cols):
-#             cv2.rectangle(stacked, (c * getWidthCard(), d * getHeightCard()),
-#                           (c * getWidthCard() + getWidthCard(), d * getHeightCard() + 32), (255, 255, 255),
-#                           cv2.FILLED)
-#             cv2.putText(stacked, labels[d][c], (getWidthCard() * c + 10, getHeightCard() * d + 23), cv2.FONT_HERSHEY_DUPLEX, 1,
-#                         (0, 0, 0), 2)
-
-#     return stacked
-def resize_images_to_max_width(imageArr):
-    # Find the maximum width across all images
-    max_width = max(img.shape[1] for row in imageArr for img in row)
-
-    # Resize each image to have the maximum width, maintaining aspect ratio
-    resized_imageArr = []
-    for row in imageArr:
-        resized_row = []
-        for img in row:
-            if img.shape[1] != max_width:
-                scale = max_width / img.shape[1]
-                new_height = int(img.shape[0] * scale)
-                resized_img = cv2.resize(img, (max_width, new_height))
-            else:
-                resized_img = img
-            resized_row.append(resized_img)
-        resized_imageArr.append(resized_row)
-
-    return resized_imageArr
-
-def ensure_3_channels(image):
-    if len(image.shape) == 2:  # Grayscale
-        return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-    return image  # Already 3-channel
-
-def makeDisplayImage(imageArr, labels):
-    imageArr = [[ensure_3_channels(img) for img in row] for row in imageArr]
-    hor = [np.hstack(row) for row in imageArr]
+    # Stack the images
+    hor = [imageBlank] * rows
+    for x in range(0, rows):
+        hor[x] = np.hstack(imgArr[x])
     stacked = np.vstack(hor)
-    # Add labels, if required
+
+    # Add labels via white rectangles and text
+    for d in range(0, rows):
+        for c in range(0, cols):
+            cv2.rectangle(stacked, (c * getWidthCard(), d * getHeightCard()),
+                          (c * getWidthCard() + getWidthCard(), d * getHeightCard() + 32), (255, 255, 255),
+                          cv2.FILLED)
+            cv2.putText(stacked, labels[d][c], (getWidthCard() * c + 10, getHeightCard() * d + 23), cv2.FONT_HERSHEY_DUPLEX, 1,
+                        (0, 0, 0), 2)
+
     return stacked
 
 

@@ -1,10 +1,13 @@
 import mysql.connector
 import cardSet
+import pokedex
+import evolutionsSet
 import imagehash
 import numpy as np
 import pickle
 import tqdm
 import timeit
+import scipy
 username = "root"  # Your mysql username
 password = "password"  # Your mysql password
 databasename = "pokemondatabaselimit"  # name of database we want to create
