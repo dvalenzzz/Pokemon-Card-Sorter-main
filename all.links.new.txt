@@ -1,0 +1,13 @@
+# File path to save the URLs
+output_file_path = 'urls.txt'
+
+# Base URL with a placeholder for the page number
+base_url = "https://pkmncards.com/page/{}/?s&sort=date&ord=auto&display=images"
+
+# Open the file and write the URLs
+with open(output_file_path, 'w') as file:
+    for i in range(1, 310):
+        url = base_url.format(i)
+        file.write(url + '\n')
+
+print(f"URLs saved to {output_file_path}.")
