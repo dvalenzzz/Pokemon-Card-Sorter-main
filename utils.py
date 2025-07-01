@@ -42,7 +42,7 @@ def biggestContour(contours):
     
     for contour in contours:
         area = cv2.contourArea(contour)
-        if area > 150:
+        if area > 3000:
             # Get bounding rectangle
             rect = cv2.minAreaRect(contour)
             box = cv2.boxPoints(rect)
@@ -153,11 +153,14 @@ def findCard(imgWarpColor):
     convertedImgWarpColor = cv2.cvtColor(imgWarpColor, cv2.COLOR_BGR2RGB)
 
     # Gets the average hash value from the frame
-    hashes = np.empty(2, dtype=object)
+    hashes = np.empty(4, dtype=object)
     scannedCard = Image.fromarray(convertedImgWarpColor)
 
     hashes[0] = imagehash.phash(scannedCard)
     hashes[1] = imagehash.dhash(scannedCard)
+    hashes[2] = imagehash.whash(scannedCard)
+    hashes[3] = imagehash.average_hash(scannedCard)
+
     section_start = timeit.default_timer()
 
     # Compares this hash to a database of hash values for all cards in the Evolutions set

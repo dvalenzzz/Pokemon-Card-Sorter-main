@@ -224,7 +224,7 @@ def convertStr2Hash(hashes):
 def compareCards(hashes):
     cutoff = 18  # Arbitrarily set cutoff value; was found through testing
     # Connects to the pokemon card database
-    db = mysql.connector.connect(
+    db =mysql.connector.connect(
         host="localhost",
         user=username,
         passwd=password,
@@ -240,7 +240,7 @@ def compareCards(hashes):
     dhashesDists = np.zeros(4)
 
     maxHashDists = []  # An array that will store the maximum of the minimum hash difference for each card
-    
+    hashDistancesTotal= []
     for _ in range(mycursor.rowcount):  # Loop through each row in EvolutionsCards table
         # Get the values stored in each row
         # Note: the hashes are stored as Strings in the database because MySQL doesn't support storing hashes
@@ -276,9 +276,12 @@ def compareCards(hashes):
         hashDistances = [ min(phashesDists), min(dhashesDists)]
         maxHashDists.append(max(hashDistances))  # Find the max of the mins of each hashing method to reduce error
         section_end = timeit.default_timer()
+        hashDistancesTotal.append(hashDistances)
         # print(f"Time to read phashdist 0: {section_end - section_start:.4f} seconds")
-
-    # print(min(maxHashDists))
+        
+    
+    print("Max Hash Distance"+str(min(maxHashDists)))
+    print("hasdhsibcenvevvne"+str(min(hashDistancesTotal)))
     if min(maxHashDists) < cutoff:  # If the smallest hash distance is less than the cutoff, we have found our card
         minCardNum = maxHashDists.index(min(maxHashDists)) +1 # Find the card number of the card
 
